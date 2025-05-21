@@ -16,12 +16,12 @@ async function sendResetPasswordEmail(email, OTP) {
 
     // Setup email data
     let mailOptions = {
-        from: `"Vision Fund India" ${config.smtpUser}`, // Sender address
+        from: `"Markethack.ai" ${config.smtpUser}`, // Sender address
         to: email, // List of receivers
-        subject: 'OTP for Vision Fund - Reset Password', // Subject line
-        text: `Welcome to Vision Fund!\n\nYour OTP to reset your password is: ${OTP}`, // Plain text body
+        subject: 'OTP for Markethack.ai - Reset Password', // Subject line
+        text: `Welcome to Markethack.ai!\n\nYour OTP to reset your password is: ${OTP}`, // Plain text body
         html: `
-            <h1>Welcome to Vision Fund!</h1>
+            <h1>Welcome to Markethack.ai!</h1>
             <p>Did you Forgot your Password?</p>
             <p>The OTP to reset your password is: <b>${OTP}</b></p>
             <p>Please keep this information secure and do not share it with anyone.</p>

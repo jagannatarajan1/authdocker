@@ -16,6 +16,11 @@ const authRouter = express.Router();
 
 authRouter.post("/signup", validateInput(signupSchema), AuthController.signup);
 authRouter.post(
+  "/adminsignup",
+  validateInput(signupSchema),
+  AuthController.adminSignup
+);
+authRouter.post(
   "/login",
   validateInput(loginSchema),
   AuthController.clientLogin

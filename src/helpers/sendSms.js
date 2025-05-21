@@ -33,7 +33,7 @@ export const sendSms = async (phone, message) => {
  * @param {string} otp - The OTP to send.
  */
 export const sendOtpSMS = async (phone, otp) => {
-    const message = `Dear User, your one-time password (OTP) for secure login to your account is ${otp}. Please use this OTP to authenticate your access. The OTP will expire in 10 minutes. Regards, VisionFund India.`;
+    const message = `Dear User, your one-time password (OTP) for secure login to your account is ${otp}. Please use this OTP to authenticate your access. The OTP will expire in 10 minutes. Regards, Markethack.ai.`;
     await sendSms(phone, message);
 };
 
@@ -43,6 +43,6 @@ export const sendOtpSMS = async (phone, otp) => {
  * @param {string} otp - The OTP to send.
  */
 export const sendResetSMS = async (phone, otp) => {
-    const message = `Dear User, your OTP is ${otp} for forgot password. Please use this OTP to proceed. This OTP is valid for 10 minutes. Best regards, VisionFund India.`;
+    const message = `Dear User, your OTP is ${otp} for forgot password. Please use this OTP to proceed. This OTP is valid for 10 minutes. Best regards, Markethack.ai.`;
     await sendSms(phone, message);
 };

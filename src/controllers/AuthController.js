@@ -3,6 +3,7 @@ import User from "../models/UserModel.js";
 import jwt from "../utils/jwt.js";
 import UserService from "../services/UserService.js";
 import logger from "../configs/loggers.js";
+import createUser from "../utils/createUser.js";
 import { sendOtpSMS, sendResetSMS } from "../helpers/sendSms.js";
 
 import sendPasswordEmailV2 from "../helpers/sendPasswordEmailv2.js";
@@ -10,51 +11,51 @@ import sendResetPasswordEmailV2 from "../helpers/sendResetPasswordEmailv2.js";
 
 const Authcontroller = {
   signup: catcher(async (req, res) => {
+    try {
+      const newUser = await createUser({ ...req.body });
+      const tokens = await UserService.getTokens({
+        ...newUser.toObject(),
+        userId: newUser.userId,
+      });
+      return res.status(201).json({
+        message: "User created successfully.",
+        data: { ...tokens, userData: newUser },
+      });
+    } catch (error) {
+      return res.status(409).json({ message: error.message });
+    }
+  }),
+
+  adminSignup: catcher(async (req, res) => {
     const { firstName, lastName, email, password, phone, role } = req.body;
 
-    if (!firstName || !lastName || !email || !password || !role) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-    console.log(firstName, lastName, email, password, phone, role);
-    const existingUser = await UserService.getUser(email, [
-      "customer",
-      "admin",
-    ]);
-    if (existingUser) {
-      return res.status(409).json({ message: "User already exists." });
+    if (!firstName || !lastName || !email || !password || role !== "admin") {
+      return res.status(400).json({
+        message: "All fields are required, and role must be 'admin'.",
+      });
     }
 
-    const newUser = new User({
-      firstName,
-      lastName,
-      email,
-      phone,
-      password, // will be hashed automatically by pre-save hook
-      role,
-      isActive: true,
-    });
+    try {
+      const newUser = await createUser({
+        firstName,
+        lastName,
+        email,
+        password,
+        phone,
+        role,
+      });
+      const tokens = await UserService.getTokens({
+        ...newUser.toObject(),
+        userId: newUser.userId,
+      });
 
-    await newUser.save();
-
-    const userData = {
-      email: newUser.email,
-      phone: newUser.phone,
-      userId: newUser.userId,
-      role: newUser.role,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      isActive: newUser.isActive,
-    };
-
-    const { accessToken, refreshToken } = await UserService.getTokens({
-      ...userData,
-      userId: newUser.userId,
-    });
-
-    return res.status(201).json({
-      message: "User created successfully.",
-      data: { accessToken, refreshToken, userData },
-    });
+      return res.status(201).json({
+        message: "Admin created successfully.",
+        data: { ...tokens, userData: newUser },
+      });
+    } catch (error) {
+      return res.status(409).json({ message: error.message });
+    }
   }),
 
   clientLogin: catcher(async (req, res) => {
@@ -178,7 +179,7 @@ const Authcontroller = {
   }),
   forgotPassword: catcher(async (req, res, next) => {
     const { email } = req.body;
-    const user = await UserService.getUser(email, ["customer", "admin"]);
+    const user = await UserService.getUser(email, ["customer"]);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
