@@ -1,0 +1,25 @@
+# version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+    container_name: backend
+    ports:
+      - "3000:3000"
+    networks:
+      - mern-network
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/auth
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - mern-network
+
+networks:
+  mern-network:
+    driver: bridge

@@ -5,6 +5,7 @@ import validateInput from "../middlewares/validate.js";
 import AuthController from "../controllers/AuthController.js";
 import {
   loginSchema,
+  signupSchema,
   refreshTokenSchema,
 } from "../validations/AuthValidation.js";
 import verifyAdmin from "../middlewares/verifyAdmin.js";
@@ -13,12 +14,16 @@ import verifyToken from "../middlewares/verifyToken.js";
 
 const authRouter = express.Router();
 
-authRouter.post("/signup", validateInput(loginSchema), AuthController.signup);
+authRouter.post("/signup", validateInput(signupSchema), AuthController.signup);
 authRouter.post(
-  "/login", 
+  "/login",
   validateInput(loginSchema),
   AuthController.clientLogin
 );
+
+authRouter.get("/testing", (req, res) => {
+  res.status(200).json({ message: "Testing" });
+});
 authRouter.post(
   "/admin/login",
   validateInput(loginSchema),
@@ -38,9 +43,6 @@ authRouter.post("/otpLogin", AuthController.otpLogin);
 
 authRouter.post("/forgotPassword", AuthController.forgotPassword);
 authRouter.post("/resetPassword", AuthController.resetPassword);
-
-authRouter.post("/forgotPasswordMobile", AuthController.forgotPasswordMobile);
-authRouter.post("/resetPasswordMobile", AuthController.resetPasswordMobile);
 
 authRouter.post("/changePassword", verifyToken, AuthController.changePassword);
 authRouter.get("/me", verifyToken, AuthController.me);

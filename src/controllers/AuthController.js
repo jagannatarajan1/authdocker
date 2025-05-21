@@ -4,25 +4,18 @@ import jwt from "../utils/jwt.js";
 import UserService from "../services/UserService.js";
 import logger from "../configs/loggers.js";
 import { sendOtpSMS, sendResetSMS } from "../helpers/sendSms.js";
-import Center from "../models/CenterModel.js";
 
-import Group from "../models/GroupModel.js";
-import Location from "../models/LocationModel.js";
 import sendPasswordEmailV2 from "../helpers/sendPasswordEmailv2.js";
 import sendResetPasswordEmailV2 from "../helpers/sendResetPasswordEmailv2.js";
 
 const Authcontroller = {
   signup: catcher(async (req, res) => {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
     const { firstName, lastName, email, password, phone, role } = req.body;
 
     if (!firstName || !lastName || !email || !password || !role) {
       return res.status(400).json({ message: "All fields are required." });
     }
-
+    console.log(firstName, lastName, email, password, phone, role);
     const existingUser = await UserService.getUser(email, [
       "customer",
       "admin",
@@ -36,7 +29,7 @@ const Authcontroller = {
       lastName,
       email,
       phone,
-      password,
+      password, // will be hashed automatically by pre-save hook
       role,
       isActive: true,
     });
@@ -45,6 +38,8 @@ const Authcontroller = {
 
     const userData = {
       email: newUser.email,
+      phone: newUser.phone,
+      userId: newUser.userId,
       role: newUser.role,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
@@ -95,6 +90,9 @@ const Authcontroller = {
   }),
 
   adminLogin: catcher(async (req, res) => {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied" });
+    }
     const { email, password } = req.body;
 
     const user = await UserService.getUser(email, ["admin"]);
