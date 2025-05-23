@@ -15,25 +15,20 @@ import verifyToken from "../middlewares/verifyToken.js";
 const authRouter = express.Router();
 
 authRouter.post("/signup", validateInput(signupSchema), AuthController.signup);
-authRouter.post(
-  "/adminsignup",
-  validateInput(signupSchema),
-  AuthController.adminSignup
-);
+
 authRouter.post(
   "/login",
   validateInput(loginSchema),
   AuthController.clientLogin
 );
 
-authRouter.get("/testing", (req, res) => {
-  res.status(200).json({ message: "Testing" });
-});
 authRouter.post(
   "/admin/login",
   validateInput(loginSchema),
   AuthController.adminLogin
 );
+
+authRouter.post("/google/login", AuthController.googleLogin);
 
 authRouter.get(
   "/verify",
@@ -52,6 +47,6 @@ authRouter.post("/resetPassword", AuthController.resetPassword);
 authRouter.post("/changePassword", verifyToken, AuthController.changePassword);
 authRouter.get("/me", verifyToken, AuthController.me);
 
-// authRouter.post('/logout', AuthController.logout);
+// authRouter.post("/logout", AuthController.logout);
 
 export default authRouter;

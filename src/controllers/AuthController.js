@@ -26,38 +26,6 @@ const Authcontroller = {
     }
   }),
 
-  adminSignup: catcher(async (req, res) => {
-    const { firstName, lastName, email, password, phone, role } = req.body;
-
-    if (!firstName || !lastName || !email || !password || role !== "admin") {
-      return res.status(400).json({
-        message: "All fields are required, and role must be 'admin'.",
-      });
-    }
-
-    try {
-      const newUser = await createUser({
-        firstName,
-        lastName,
-        email,
-        password,
-        phone,
-        role,
-      });
-      const tokens = await UserService.getTokens({
-        ...newUser.toObject(),
-        userId: newUser.userId,
-      });
-
-      return res.status(201).json({
-        message: "Admin created successfully.",
-        data: { ...tokens, userData: newUser },
-      });
-    } catch (error) {
-      return res.status(409).json({ message: error.message });
-    }
-  }),
-
   clientLogin: catcher(async (req, res) => {
     const { email, password } = req.body;
 
@@ -192,7 +160,7 @@ const Authcontroller = {
   }),
   resetPassword: catcher(async (req, res, next) => {
     const { email, otp, password } = req.body;
-    const user = await UserService.getUser(email, ["customer", "admin"]);
+    const user = await UserService.getUser(email, ["customer"]);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -259,10 +227,7 @@ const Authcontroller = {
   changePassword: catcher(async (req, res, next) => {
     const { oldPassword, newPassword } = req.body;
     const userData = req.user;
-    const user = await UserService.getUser(userData.email, [
-      "customer",
-      "admin",
-    ]);
+    const user = await UserService.getUser(userData.email, ["customer"]);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -293,6 +258,102 @@ const Authcontroller = {
       return res.status(404).json({ message: "User not found" });
     }
     return res.json({ message: "User fetched", status: "success", user });
+  }),
+
+  googleLogin: catcher(async (req, res) => {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({ message: "Missing authorization code" });
+    }
+
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return res.status(500).json({
+        message:
+          "Google OAuth configuration is missing. Please check environment variables.",
+      });
+    }
+
+    try {
+      // Exchange the authorization code for tokens
+      const tokenResponse = await axios.post(
+        "https://oauth2.googleapis.com/token",
+        {
+          code,
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          redirect_uri: "postmessage",
+          grant_type: "authorization_code",
+        }
+      );
+
+      const { access_token, refresh_token, expires_in, scope } =
+        tokenResponse.data;
+
+      // Use the access token to fetch user information
+      const userInfoResponse = await axios.get(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        }
+      );
+
+      const { email, given_name, family_name, sub } = userInfoResponse.data;
+
+      // Check if user already exists in the database
+      let user = await UserService.getUser(email, ["customer", "admin"]);
+
+      if (!user) {
+        // If user doesn't exist, create a new user
+        user = await createUser({
+          email,
+          firstName: given_name,
+          lastName: family_name,
+          googleId: sub,
+          role: "customer", // Default role
+          isActive: true,
+        });
+      }
+
+      // Generate tokens for the user
+      const userData = {
+        email: user.email,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isActive: user.isActive,
+      };
+
+      const { accessToken, refreshToken } = await UserService.getTokens({
+        ...userData,
+        userId: user.userId,
+      });
+
+      return res.json({
+        message: "Google account connected successfully",
+        data: {
+          accessToken,
+          refreshToken,
+          userData,
+        },
+      });
+    } catch (error) {
+      logger.error("Google OAuth error", error.response?.data || error.message);
+
+      if (error.response?.data?.error) {
+        return res.status(400).json({
+          message: "Google OAuth failed",
+          error: error.response.data.error,
+          details: error.response.data.error_description,
+        });
+      }
+
+      return res.status(500).json({
+        message: "Internal server error while connecting Google account",
+      });
+    }
   }),
 };
 

@@ -22,14 +22,14 @@ const envVarsSchema = Joi.object()
       .default("development"),
     MONGODB_URI: Joi.string().required(),
     JWT_SECRET: Joi.string().required(),
-    // APP_SECRET: Joi.string().required(),
-    // ENCRYPT_KEY: Joi.string().required(),
-    // SMTP_USER: Joi.string().required(),
-    // SMTP_PASS: Joi.string().required(),
-    // MAIL_HOST: Joi.string().required(),
-    // MAIL_PORT: Joi.number().required(),
-    // MAIL_ENCRYPTION: Joi.string().valid("starttls", "tls", "ssl").required(),
-    // MAIL_FROM_ADDRESS: Joi.string().required(),
+    APP_SECRET: Joi.string().required(),
+    ENCRYPT_KEY: Joi.string().required(),
+    SMTP_USER: Joi.string().required(),
+    SMTP_PASS: Joi.string().required(),
+    MAIL_HOST: Joi.string().required(),
+    MAIL_PORT: Joi.number().required(),
+    MAIL_ENCRYPTION: Joi.string().valid("starttls", "tls", "ssl").required(),
+    MAIL_FROM_ADDRESS: Joi.string().required(),
   })
   .unknown(true);
 
