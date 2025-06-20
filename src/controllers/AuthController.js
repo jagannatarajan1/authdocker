@@ -22,6 +22,7 @@ const Authcontroller = {
         data: { ...tokens, userData: newUser },
       });
     } catch (error) {
+      logger.error("Signup error", { error, requestBody: req.body });
       return res.status(409).json({ message: error.message });
     }
   }),
@@ -42,8 +43,8 @@ const Authcontroller = {
     const userData = {
       email: user.email,
       role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      Name: user.Name,
+      // lastName: user.lastName,
       isActive: user.isActive,
     };
 
@@ -77,7 +78,7 @@ const Authcontroller = {
     const userData = {
       email: user.email,
       role: user.role,
-      name: `${user.firstName} ${user.lastName}`,
+      name: user.Name,
       isActive: user.isActive,
     };
 
@@ -209,8 +210,8 @@ const Authcontroller = {
     const userData = {
       email: user.email,
       role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      Name: user.Name,
+      // lastName: user.lastName,
       isActive: user.isActive,
     };
 
@@ -309,8 +310,8 @@ const Authcontroller = {
         // If user doesn't exist, create a new user
         user = await createUser({
           email,
-          firstName: given_name,
-          lastName: family_name,
+          Name: given_name,
+          // lastName: family_name,
           googleId: sub,
           role: "customer", // Default role
           isActive: true,
@@ -321,8 +322,8 @@ const Authcontroller = {
       const userData = {
         email: user.email,
         role: user.role,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        Name: user.Name,
+        // lastName: user.lastName,
         isActive: user.isActive,
       };
 
@@ -353,6 +354,38 @@ const Authcontroller = {
       return res.status(500).json({
         message: "Internal server error while connecting Google account",
       });
+    }
+  }),
+  checkSubscription: catcher(async (req, res) => {
+    const { email } = req.query; // Assuming the user ID is passed as a query parameter
+
+    try {
+      // Fetch the user from the database
+
+      const user = await UserService.getUser(email, ["customer"]);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Check if the subscription is valid
+      const isSubscribed =
+        user.isSubscribed && new Date() <= new Date(user.subscriptionExpiresAt);
+
+      if (isSubscribed) {
+        return res.json({
+          message: "Subscription is active",
+          subscriptionStatus: "active",
+          subscriptionExpiresAt: user.subscriptionExpiresAt,
+        });
+      } else {
+        return res.json({
+          message: "Subscription is not active or expired",
+          subscriptionStatus: "expired",
+          subscriptionExpiresAt: user.subscriptionExpiresAt,
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({ message: "An error occurred", error });
     }
   }),
 };

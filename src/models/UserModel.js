@@ -27,16 +27,12 @@ const userSchema = new mongoose.Schema(
       maxlength: 10,
       required: true,
     },
-    firstName: {
+    Name: {
       type: String,
       required: true,
       trim: true,
     },
-    lastName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+
     isActive: {
       type: Boolean,
       default: true,
@@ -53,6 +49,8 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    isSubscribed: { type: Boolean, default: false },
+    subscriptionExpiresAt: { type: Date },
   },
   {
     timestamps: true, // This automatically manages createdAt and updatedAt

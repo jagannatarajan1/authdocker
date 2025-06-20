@@ -43,7 +43,7 @@ authRouter.post("/otpLogin", AuthController.otpLogin);
 
 authRouter.post("/forgotPassword", AuthController.forgotPassword);
 authRouter.post("/resetPassword", AuthController.resetPassword);
-
+authRouter.post("/check-subscription", AuthController.checkSubscription);
 authRouter.post("/changePassword", verifyToken, AuthController.changePassword);
 authRouter.get("/me", verifyToken, AuthController.me);
 

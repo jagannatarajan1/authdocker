@@ -1,3 +1,4 @@
+// import UserService from "../services/UserService.js";
 import UserService from "../services/UserService.js";
 import catcher from "../utils/catcher.js";
 
@@ -12,7 +13,7 @@ const UserController = {
   }),
   // updateCustomer: catcher(async (req, res) => {
   //     const { id } = req.params;
-  //     const { firstName, lastName, externalId, centerId, groupId, locationId, phone, email } = req.body;
+  //     const { Name, lastName, externalId, centerId, groupId, locationId, phone, email } = req.body;
   //     const customer = await UserService.getUserById(id);
   //     if (!customer) {
   //         return res.status(404).json({ message: 'User not found' });
@@ -27,12 +28,12 @@ const UserController = {
   //     if (existingUserMobile && existingUserMobile.userId != id) {
   //         return res.status(400).json({ message: 'Phone number is already in use' });
   //     }
-  //     const updatedCustomer = await UserService.updateUser(id, { firstName, lastName, externalId, centerId, groupId, locationId, email, phone });
+  //     const updatedCustomer = await UserService.updateUser(id, { Name, lastName, externalId, centerId, groupId, locationId, email, phone });
   //     return res.json({ message: 'User updated successfully'});
   // }),
   // updateEmployee: catcher(async (req, res) => {
   //     const { id } = req.params;
-  //     const {  firstName, lastName, externalId, departmentId, designationId, branchId, phone, email } = req.body;
+  //     const {  Name, lastName, externalId, departmentId, designationId, branchId, phone, email } = req.body;
 
   //     const employee = await UserService.getUserById(id);
   //     if (!employee) {
@@ -48,12 +49,12 @@ const UserController = {
   //     if (existingUserMobile && existingUserMobile.userId != id) {
   //         return res.status(400).json({ message: 'Phone number is already in use' });
   //     }
-  //     const updatedEmployee = await UserService.updateUser(id, {  firstName, lastName, externalId, departmentId, designationId, branchId, email, phone });
+  //     const updatedEmployee = await UserService.updateUser(id, {  Name, lastName, externalId, departmentId, designationId, branchId, email, phone });
   //     return res.json({ message: 'User updated successfully'});
   // }),
   // updateInstructor: catcher(async (req, res) => {
   //     const { id } = req.params;
-  //     const {  firstName, lastName, phone, email, departmentId, designationId, branchId } = req.body;
+  //     const {  Name, lastName, phone, email, departmentId, designationId, branchId } = req.body;
   //     const instructor = await UserService.getUserById(id);
   //     if (!instructor) {
   //         return res.status(404).json({ message: 'User not found' });
@@ -68,7 +69,7 @@ const UserController = {
   //     if (existingUserMobile && existingUserMobile.userId != id) {
   //         return res.status(400).json({ message: 'Phone number is already in use' });
   //     }
-  //     const updatedInstructor = await UserService.updateUser(id, {  firstName, lastName, email, phone, departmentId, designationId, branchId });
+  //     const updatedInstructor = await UserService.updateUser(id, {  Name, lastName, email, phone, departmentId, designationId, branchId });
   //     return res.json({ message: 'User updated successfully'});
   // }),
   deActivateUser: catcher(async (req, res) => {

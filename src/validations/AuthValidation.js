@@ -14,8 +14,8 @@ export const refreshTokenSchema = {
 };
 export const signupSchema = {
   body: Joi.object({
-    firstName: Joi.string().required(),
-    lastName: Joi.string().required(),
+    Name: Joi.string().required(),
+    // lastName: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(8).regex(/[A-Z]/).regex(/[0-9]/).required(),
     phone: Joi.string()
