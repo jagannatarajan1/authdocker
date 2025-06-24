@@ -1,7 +1,7 @@
 import UserService from "../services/UserService.js";
 import User from "../models/UserModel.js";
 const createUser = async ({
-  Name,
+  name,
   // lastName,
   email,
   password,
@@ -23,7 +23,7 @@ const createUser = async ({
   // Create new user
   try {
     const newUser = new User({
-      Name,
+      name,
       // lastName,
       email,
       phone,

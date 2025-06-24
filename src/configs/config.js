@@ -28,6 +28,8 @@ const envVarsSchema = Joi.object()
     SMTP_PASS: Joi.string().required(),
     MAIL_HOST: Joi.string().required(),
     MAIL_PORT: Joi.number().required(),
+    RAZORPAY_KEY: Joi.string().required(),
+    RAZORPAY_SECRET: Joi.string().required(),
     MAIL_ENCRYPTION: Joi.string().valid("starttls", "tls", "ssl").required(),
     MAIL_FROM_ADDRESS: Joi.string().required(),
   })
@@ -56,4 +58,6 @@ export default {
   mailPort: value.MAIL_PORT,
   mailEncryption: value.MAIL_ENCRYPTION,
   mailFromAddress: value.MAIL_FROM_ADDRESS,
+  razorpayKey: value.RAZORPAY_KEY,
+  razorpaySecret: value.RAZORPAY_SECRET,
 };

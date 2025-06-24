@@ -12,14 +12,25 @@ import sendResetPasswordEmailV2 from "../helpers/sendResetPasswordEmailv2.js";
 const Authcontroller = {
   signup: catcher(async (req, res) => {
     try {
+      // 1. Create new user
       const newUser = await createUser({ ...req.body });
-      const tokens = await UserService.getTokens({
-        ...newUser.toObject(),
-        userId: newUser.userId,
-      });
+
+      // 2. Prepare payload for token generation
+      const payload = {
+        userId: newUser._id,
+        email: newUser.email,
+        role: newUser.role,
+        name: newUser.name,
+        isActive: newUser.isActive,
+      };
+
+      // 3. Generate tokens
+      const tokens = await UserService.getTokens(payload);
+
+      // 4. Send response
       return res.status(201).json({
         message: "User created successfully.",
-        data: { ...tokens, userData: newUser },
+        data: { ...tokens, userData: payload },
       });
     } catch (error) {
       logger.error("Signup error", { error, requestBody: req.body });
@@ -30,30 +41,36 @@ const Authcontroller = {
   clientLogin: catcher(async (req, res) => {
     const { email, password } = req.body;
 
+    // 1. Find user with role 'customer'
     const user = await UserService.getUser(email, ["customer"]);
     if (!user) {
-      return res.status(401).json({ message: "Invalid User" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // 2. Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Account is deactivated" });
+    }
+
+    // 3. Validate password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid Password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const userData = {
+      userId: user._id,
       email: user.email,
       role: user.role,
-      Name: user.Name,
-      // lastName: user.lastName,
+      name: user.name,
       isActive: user.isActive,
     };
 
-    const { accessToken, refreshToken } = await UserService.getTokens({
-      ...userData,
-      userId: user.userId,
-    });
+    // 5. Generate tokens
+    const { accessToken, refreshToken } = await UserService.getTokens(userData);
 
-    return res.json({
+    // 6. Send response
+    return res.status(200).json({
       message: "Login successful",
       data: { accessToken, refreshToken, userData },
     });
@@ -78,7 +95,7 @@ const Authcontroller = {
     const userData = {
       email: user.email,
       role: user.role,
-      name: user.Name,
+      name: user.name,
       isActive: user.isActive,
     };
 
@@ -210,7 +227,7 @@ const Authcontroller = {
     const userData = {
       email: user.email,
       role: user.role,
-      Name: user.Name,
+      name: user.name,
       // lastName: user.lastName,
       isActive: user.isActive,
     };
@@ -310,7 +327,7 @@ const Authcontroller = {
         // If user doesn't exist, create a new user
         user = await createUser({
           email,
-          Name: given_name,
+          name: given_name,
           // lastName: family_name,
           googleId: sub,
           role: "customer", // Default role
@@ -322,7 +339,7 @@ const Authcontroller = {
       const userData = {
         email: user.email,
         role: user.role,
-        Name: user.Name,
+        name: user.name,
         // lastName: user.lastName,
         isActive: user.isActive,
       };

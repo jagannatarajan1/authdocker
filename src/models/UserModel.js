@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import jwt from "../utils/jwt.js";
 import { USER_ROLE_ENUM } from "../helpers/constants.js";
+import config from "../configs/config.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -27,7 +29,7 @@ const userSchema = new mongoose.Schema(
       maxlength: 10,
       required: true,
     },
-    Name: {
+    name: {
       type: String,
       required: true,
       trim: true,
@@ -76,6 +78,14 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+userSchema.methods.JwtToken = async function () {
+  const user = this;
+  console.log(user);
+  const token = jwt.sign({ id: user._id }, config.jwt_secret, {
+    expiresIn: "1d", // expires in 24 hours
+  });
+  return token;
+};
 const User = mongoose.model("User", userSchema);
 
 export default User;
