@@ -1,4 +1,29 @@
-# version: "3.8"
+# # version: "3.8"
+
+# services:
+#   backend:
+#     build:
+#       context: .
+#     container_name: backend
+#     ports:
+#       - "3000:3000"
+#     networks:
+#       - mern-network
+#     environment:
+#       - MONGO_URI=mongodb://mongo:27017/auth
+
+#   mongo:
+#     image: mongo:latest
+#     container_name: mongo
+#     ports:
+#       - "27017:27017"
+#     networks:
+#       - mern-network
+
+# networks:
+#   mern-network:
+#     driver: bridge
+version: "3.8"
 
 services:
   backend:
@@ -17,6 +42,19 @@ services:
     container_name: mongo
     ports:
       - "27017:27017"
+    networks:
+      - mern-network
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok
+    ports:
+      - "4040:4040" # <-- Add this
+    depends_on:
+      - backend
+    command: http --domain=charming-starfish-specially.ngrok-free.app backend:3000
+    environment:
+      - NGROK_AUTHTOKEN=2NBBu7cXVvc8CZmVQB8tHkcUut2_3eo395RdHZZVRyt2VMhQH # <-- Replace with your actual token
     networks:
       - mern-network
 

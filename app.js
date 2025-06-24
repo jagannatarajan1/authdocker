@@ -32,12 +32,24 @@ app.use("/auth", authRouter);
 app.use("/auth/user", userRouter);
 app.use("/payment", paymentRoutes);
 
+// mongoose
+//   .connect(config.mongoDbUri)
+//   .then(() => {
+//     console.log("Connected to MongoDB");
+//     app.listen(PORT, () => {
+//       console.log(`Server is running on http://localhost:${PORT}`);
+//     });
+//   })
+//   .catch((err) => {
+//     console.error("Failed to connect to MongoDB", err);
+//   });
+
 mongoose
   .connect(config.mongoDbUri)
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server is running on http://0.0.0.0:${PORT}`);
     });
   })
   .catch((err) => {

@@ -1,10 +1,11 @@
 import mongoose from "mongoose";
+
 const paymentSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      // required: false,
+      required: true,
     },
     amount: {
       type: Number,
@@ -22,7 +23,6 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     receipt: {
       type: String,
       required: true,
@@ -42,5 +42,6 @@ const paymentSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-const payment_db = mongoose.model("paymentSchema", paymentSchema);
+
+const payment_db = mongoose.model("Payment", paymentSchema); // Use PascalCase
 export default payment_db;

@@ -32,6 +32,7 @@ const envVarsSchema = Joi.object()
     RAZORPAY_SECRET: Joi.string().required(),
     MAIL_ENCRYPTION: Joi.string().valid("starttls", "tls", "ssl").required(),
     MAIL_FROM_ADDRESS: Joi.string().required(),
+    WEBHOOK_SECRET: Joi.string().required(),
   })
   .unknown(true);
 
@@ -60,4 +61,5 @@ export default {
   mailFromAddress: value.MAIL_FROM_ADDRESS,
   razorpayKey: value.RAZORPAY_KEY,
   razorpaySecret: value.RAZORPAY_SECRET,
+  webhookSecret: value.WEBHOOK_SECRET,
 };

@@ -3,13 +3,14 @@ import express from "express";
 import razorpayInstance from "../utils/razorpayInstance.js";
 import payment_db from "../models/payment.js";
 import config from "../configs/config.js";
+import User from "../models/UserModel.js";
 import verifyToken from "../middlewares/verifyToken.js";
 // import userAuth from "../middlewares/auth.js";
 // const razorpayInstance = require("../utils/razorpayInstance");
 // const paymentSchema = require("../models/payment");
 // const {
 //   validateWebhookSignature,
-// } = require("razorpay/dist/utils/razorpay-utils");
+// } = require("razorpay/dist/utils/razorpay-utils.js");
 
 import { validateWebhookSignature } from "razorpay/dist/utils/razorpay-utils.js";
 
@@ -19,25 +20,19 @@ const paymentRoutes = express.Router();
 paymentRoutes.post("/create", verifyToken, async (req, res) => {
   try {
     console.log("Received request to create payment", req.user);
-    const { userId } = req.user;
-    // const { price, type } = req.body;
-    const price = 1000; // Example price in paise
-    const type = "stand"; // Example type
+    const { _id } = req.user;
+    console.log("User ID:", _id);
+    console.log("Request body:", req.body);
+
+    const { price } = req.body;
+    console.log(price);
     console.log("Request body:", req.body);
     console.log(config.razorpayKey);
     console.log("Razorpay Key:", config.razorpayKey);
-    const { firstName, lastName, email } = req.body;
-    console.log(
-      "Creating payment for:",
-      firstName,
-      lastName,
-      email,
-      price,
-      type
-    );
+
     const razorpayKey = config.razorpayKey;
     const payment = await razorpayInstance.orders.create({
-      amount: 100000, // Amount in paise
+      amount: price, // Amount in paise
       currency: "INR",
       receipt: "receipt#1",
     });
@@ -51,49 +46,102 @@ paymentRoutes.post("/create", verifyToken, async (req, res) => {
       currency: payment.currency,
       notes: payment.notes,
       status: payment.status,
-      userId: userId,
+      userId: _id,
       entity: payment.entity,
       amount_due: payment.amount_due,
       receipt: payment.receipt,
       attempts: payment.attempts,
     });
 
-    await newPayment.save();
+    try {
+      await newPayment.save();
+      console.log("✅ Payment saved to DB:", newPayment);
+    } catch (err) {
+      console.error("❌ Error saving payment:", err.message);
+      if (err.name === "ValidationError") {
+        console.error("Validation details:", err.errors);
+      }
+    }
+
     console.log("New payment saved:", newPayment);
 
     // Send the response to the client after saving
     res.status(201).json({
       message: "Payment created successfully",
       newPayment,
+      razorpayKey,
     });
   } catch (err) {
     console.error("Error creating payment:", err);
     res.status(500).json({ error: "Failed to create payment" });
   }
 });
-paymentRoutes.post("/payment/webhook", async (req, res) => {
+
+paymentRoutes.post("/webhook", async (req, res) => {
   try {
-    const webhookSignature = req.get["X-Razorpay-Signature"];
-    const isWebHookValid = validateWebhookSignature(
+    console.log("Webhook Called");
+    const webhookSignature = req.get("X-Razorpay-Signature");
+    console.log("Webhook Signature", webhookSignature);
+
+    // Log raw body and signature
+    console.log("🔐 Received Razorpay webhook");
+    console.log("🧾 Webhook Signature:", webhookSignature);
+    console.log("📦 Raw Body Buffer:", req.body);
+    console.log("wwwwwwwwwwwwwwwwwwwwwwwwwwww" + config.webhookSecret);
+
+    // Validate the webhook signature
+    const isWebhookValid = validateWebhookSignature(
       JSON.stringify(req.body),
       webhookSignature,
-      process.env.webhook_Secret
+      config.webhookSecret
     );
-    if (!isWebHookValid) {
-      return res.status(403).send("Invalid signature");
+
+    if (!isWebhookValid) {
+      console.log("INvalid Webhook Signature");
+      return res.status(400).json({ msg: "Webhook signature is invalid" });
     }
+    console.log("Valid Webhook Signature");
+
     const paymentDetails = req.body.payload.payment.entity;
-    const paymentId = paymentDetails.id;
-    // const paymentSchema = await findOne({ orderId: paymentId });
-    paymentSchema.status = paymentDetails.status;
-    if (!paymentSchema) {
+    console.log("💰 Payment Details:", paymentDetails);
+
+    const orderId = paymentDetails.order_id;
+    const paymentRecord = await payment_db.findOne({ orderId });
+    console.log("Payment Record:", paymentRecord);
+
+    if (!paymentRecord) {
+      console.warn("⚠️ Payment record not found for orderId:", orderId);
       return res.status(404).send("Payment not found");
     }
-    await paymentSchema.save();
-    res.status(200).send("Payment processed successfully");
-  } catch (error) {
-    console.error("Error processing webhook:", error);
-    res.status(500).send("Internal Server Error");
+
+    // Update payment status
+    paymentRecord.status = paymentDetails.status;
+    await paymentRecord.save();
+    console.log(
+      `💾 Payment status updated for order ${orderId}: ${paymentDetails.status} ${paymentDetails.userId}`
+    );
+
+    // Update user's subscription if payment is successful
+    if (paymentDetails.status === "captured") {
+      const user = await User.findById({ _id: paymentRecord.userId });
+      if (user) {
+        user.isSubscribed = true;
+        user.subscriptionExpiresAt = new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        );
+        await user.save();
+        console.log(
+          `🎉 User ${user.email} subscription activated until ${user.subscriptionExpiresAt}`
+        );
+      } else {
+        console.warn(`⚠️ User not found for payment: ${paymentRecord.userId}`);
+      }
+    }
+
+    res.status(200).send("Webhook handled successfully");
+  } catch (err) {
+    console.error("🚨 Error processing webhook:", err);
+    res.status(500).send("Internal server error");
   }
 });
 
