@@ -84,11 +84,6 @@ paymentRoutes.post("/webhook", async (req, res) => {
     console.log("Webhook Signature", webhookSignature);
 
     // Log raw body and signature
-    console.log("🔐 Received Razorpay webhook");
-    console.log("🧾 Webhook Signature:", webhookSignature);
-    console.log("📦 Raw Body Buffer:", req.body);
-    console.log("wwwwwwwwwwwwwwwwwwwwwwwwwwww" + config.webhookSecret);
-
     // Validate the webhook signature
     const isWebhookValid = validateWebhookSignature(
       JSON.stringify(req.body),
@@ -103,7 +98,6 @@ paymentRoutes.post("/webhook", async (req, res) => {
     console.log("Valid Webhook Signature");
 
     const paymentDetails = req.body.payload.payment.entity;
-    console.log("💰 Payment Details:", paymentDetails);
 
     const orderId = paymentDetails.order_id;
     const paymentRecord = await payment_db.findOne({ orderId });
@@ -145,6 +139,31 @@ paymentRoutes.post("/webhook", async (req, res) => {
   }
 });
 
-// module.exports = paymentRoutes;
+paymentRoutes.get("/verify", verifyToken, async (req, res) => {
+  try {
+    const { _id } = req.user;
+    console.log("User ID:", _id);
+
+    const user = await User.findById(_id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isSubscribed) {
+      console.log("User is subscribed");
+      return res
+        .status(200)
+        .json({ message: "User is subscribed", isSubscribed: true });
+    } else {
+      console.log("User is not subscribed");
+      return res
+        .status(200)
+        .json({ message: "User is not subscribed", isSubscribed: false });
+    }
+  } catch (err) {
+    console.error("Error verifying user:", err);
+    return res.status(500).json({ error: "Failed to verify user" });
+  }
+});
 
 export default paymentRoutes;

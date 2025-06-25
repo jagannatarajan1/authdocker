@@ -2,11 +2,10 @@ import UserService from "../services/UserService.js";
 import User from "../models/UserModel.js";
 const createUser = async ({
   name,
-  // lastName,
   email,
   password,
   phone,
-  role,
+  role = "customer", // Default to "customer" if not provided
 }) => {
   // Check for existing email
   const existingEmail = await UserService.getUser(email, ["customer", "admin"]);
@@ -24,14 +23,11 @@ const createUser = async ({
   try {
     const newUser = new User({
       name,
-      // lastName,
       email,
       phone,
       password,
-      role,
+      role: "customer",
       isActive: true,
-      // isSubscribed: false,
-      // subscriptionExpiresAt: null,
     });
     await newUser.save();
     return newUser;
@@ -44,7 +40,7 @@ const createUser = async ({
         } is already in use.`
       );
     }
-    throw error; // Re-throw other errors
+    throw error;
   }
 };
 

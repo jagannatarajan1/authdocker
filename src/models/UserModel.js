@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       enum: USER_ROLE_ENUM,
       required: true,
+      default: "customer", // 👈 This sets the default
     },
     phone: {
       type: String,

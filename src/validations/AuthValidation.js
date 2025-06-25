@@ -21,7 +21,8 @@ export const signupSchema = {
     phone: Joi.string()
       .pattern(/^\d{10}$/)
       .required(),
-    role: Joi.string().valid("admin", "customer").required(),
+    // role: Joi.string().valid("admin", "customer").required(),
+    role: Joi.string().valid("customer", "admin").default("customer"),
   }),
 };
 
